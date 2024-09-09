@@ -1,13 +1,7 @@
-//
-//  ContentView.swift
-//  RemindMe
-//
-//  Created by Arash Aghaei on 9/9/24.
-//
-
 import SwiftUI
 import Contacts
 import ContactsUI
+import UserNotifications
 
 // نمایی برای انتخاب مخاطب
 struct ContactPickerView: UIViewControllerRepresentable {
@@ -23,7 +17,6 @@ struct ContactPickerView: UIViewControllerRepresentable {
             parent.selectedContact = fullName
             parent.didPickContact()
         }
-        
         
         func contactPickerDidCancel(_ picker: CNContactPickerViewController) {
             parent.didCancel()
@@ -81,7 +74,8 @@ struct AddContactView: View {
                         selectedContacts.append(newContactName)
                         newContactName = ""
                         isEnteringManually = false
-                        presentationMode.wrappedValue.dismiss()                    }
+                        presentationMode.wrappedValue.dismiss()
+                    }
                 }) {
                     Text("Add Contact")
                 }
@@ -112,17 +106,19 @@ struct AddContactView: View {
 
 struct ContentView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var eventTitle: String = "Birthday"
+    @State private var eventTitle: String? = nil
     @State private var eventDate: Date = Date()
     @State private var selectedCalendar: Calendar = Calendar(identifier: .gregorian)
     @State private var selectedContacts: [String] = []
     @State private var events: [Event] = []
-    @State private var isAddingCustomEvent: Bool = false
-    @State private var newCustomEventTitle: String = ""
     @State private var isShowingAddContactsView: Bool = false
     @State private var contactToAdd: String? = nil
+    @State private var newCustomEventTitle: String = ""
+    @State private var isShowingCustomEventView: Bool = false
 
-    @State private var defaultEvents = ["Birthday", "Anniversary", "Meeting", "Other"]
+    @State private var defaultEvents = ["Birthday", "Anniversary", "Meeting", "Add Custom Event"]
+
+    @State private var showError = false
 
     var body: some View {
         NavigationView {
@@ -138,40 +134,31 @@ struct ContentView: View {
                     .environment(\.calendar, selectedCalendar)
                     .padding()
 
-                if isAddingCustomEvent {
-                    TextField("Enter custom event", text: $newCustomEventTitle)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-
-                    Button(action: {
-                        if !newCustomEventTitle.isEmpty {
-                            defaultEvents.append(newCustomEventTitle)
-                            newCustomEventTitle = ""
-                            isAddingCustomEvent = false
-                        }
-                    }) {
-                        Text("Save Custom Event")
+                Picker("Select Event", selection: $eventTitle) {
+                    Text("Select Event").tag(String?.none) // Non-selectable title
+                        .foregroundColor(.blue) // Set color to blue
+                    ForEach(defaultEvents, id: \.self) { event in
+                        Text(event).tag(String?(event))
+                            .foregroundColor(.black) // Set color to black for other options
                     }
-                    .padding()
-                } else {
-                    Picker("Event Title", selection: $eventTitle) {
-                        ForEach(defaultEvents, id: \.self) { event in
-                            Text(event).tag(event)
-                        }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .padding()
+                .onChange(of: eventTitle) { newValue in
+                    if newValue == nil {
+                        showError = false // Reset error state
+                    } else if newValue == "Add Custom Event" {
+                        isShowingCustomEventView = true
+                        eventTitle = nil // Reset the picker to avoid selecting custom event again
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding()
-
-                    Button(action: {
-                        isAddingCustomEvent = true
-                    }) {
-                        Text("Add Custom Event")
-                    }
-                    .padding()
                 }
 
                 Button(action: {
-                    self.isShowingAddContactsView = true
+                    if eventTitle == nil {
+                        showError = true
+                    } else {
+                        self.isShowingAddContactsView = true
+                    }
                 }) {
                     Text("Add Contacts")
                 }
@@ -182,20 +169,27 @@ struct ContentView: View {
                 }
 
                 Button(action: {
-                    if !eventTitle.isEmpty && !selectedContacts.isEmpty {
+                    if let eventTitle = eventTitle, !selectedContacts.isEmpty {
                         let newEvent = Event(title: eventTitle, date: eventDate, contacts: selectedContacts)
                         events.append(newEvent)
                         saveEvent(newEvent)
                         scheduleNotification(for: newEvent)
-                        eventTitle = ""
+                        self.eventTitle = nil
                         selectedContacts = []
                     } else {
-                        print("Event title or contacts must be selected.")
+                        showError = true
                     }
                 }) {
                     Text("Add Event")
                 }
                 .padding()
+                .alert(isPresented: $showError) {
+                    Alert(
+                        title: Text("Error"),
+                        message: Text("Please select a valid event titles."),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
 
                 List {
                     ForEach(events, id: \.title) { event in
@@ -212,12 +206,37 @@ struct ContentView: View {
                 .listStyle(PlainListStyle())
                 .navigationBarItems(trailing: EditButton())
             }
-            .navigationTitle("Event Reminder")
+            .navigationTitle("RemindMe")
             .onAppear {
                 loadEvents()
             }
             .sheet(isPresented: $isShowingAddContactsView) {
                 AddContactView(selectedContacts: $selectedContacts, contactToAdd: $contactToAdd)
+            }
+            .sheet(isPresented: $isShowingCustomEventView) {
+                VStack {
+                    TextField("Enter custom event", text: $newCustomEventTitle)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                    
+                    Button(action: {
+                        if !newCustomEventTitle.isEmpty, !defaultEvents.contains(newCustomEventTitle) {
+                            defaultEvents.append(newCustomEventTitle)
+                            newCustomEventTitle = ""
+                            isShowingCustomEventView = false
+                        }
+                    }) {
+                        Text("Save Custom Event")
+                    }
+                    .padding()
+                    
+                    Button(action: {
+                        isShowingCustomEventView = false
+                    }) {
+                        Text("Cancel")
+                    }
+                    .padding()
+                }
             }
         }
     }
@@ -266,4 +285,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-//new

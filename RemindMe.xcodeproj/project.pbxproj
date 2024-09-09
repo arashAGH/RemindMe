@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		5B08510E2C8F69B90081980D /* RemindMeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B08510D2C8F69B90081980D /* RemindMeApp.swift */; };
-		5B0851122C8F69B90081980D /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0851112C8F69B90081980D /* Item.swift */; };
 		5B0851142C8F69BA0081980D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B0851132C8F69BA0081980D /* Assets.xcassets */; };
 		5B0851172C8F69BA0081980D /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B0851162C8F69BA0081980D /* Preview Assets.xcassets */; };
 		5B0851212C8F69BA0081980D /* RemindMeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0851202C8F69BA0081980D /* RemindMeTests.swift */; };
@@ -37,7 +36,6 @@
 /* Begin PBXFileReference section */
 		5B08510A2C8F69B90081980D /* RemindMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemindMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B08510D2C8F69B90081980D /* RemindMeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindMeApp.swift; sourceTree = "<group>"; };
-		5B0851112C8F69B90081980D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		5B0851132C8F69BA0081980D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5B0851162C8F69BA0081980D /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		5B08511C2C8F69BA0081980D /* RemindMeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemindMeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,7 +96,6 @@
 			children = (
 				5BEB9BBC2C8F89C300DFEEE2 /* ContentView.swift */,
 				5B08510D2C8F69B90081980D /* RemindMeApp.swift */,
-				5B0851112C8F69B90081980D /* Item.swift */,
 				5B0851132C8F69BA0081980D /* Assets.xcassets */,
 				5B0851152C8F69BA0081980D /* Preview Content */,
 			);
@@ -260,7 +257,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B0851122C8F69B90081980D /* Item.swift in Sources */,
 				5B08510E2C8F69B90081980D /* RemindMeApp.swift in Sources */,
 				5BEB9BBD2C8F89C300DFEEE2 /* ContentView.swift in Sources */,
 			);
