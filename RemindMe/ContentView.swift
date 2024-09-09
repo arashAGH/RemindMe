@@ -123,15 +123,19 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
+                // اضافه کردن تقویم اسلامی به انتخاب تقویم
                 Picker("Select Calendar", selection: $selectedCalendar) {
                     Text("Gregorian").tag(Calendar(identifier: .gregorian))
                     Text("Persian").tag(Calendar(identifier: .persian))
+                    // استفاده از تقویم Umm al-Qura برای اطمینان از پایداری
+                    Text("Islamic").tag(Calendar(identifier: .islamicUmmAlQura))
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
 
+                // اطمینان از استفاده از تقویم انتخابی در DatePicker
                 DatePicker("Select Date", selection: $eventDate, displayedComponents: .date)
-                    .environment(\.calendar, selectedCalendar)
+                    .environment(\.calendar, selectedCalendar) // اعمال تقویم انتخاب‌شده
                     .padding()
 
                 Picker("Select Event", selection: $eventTitle) {
@@ -144,7 +148,7 @@ struct ContentView: View {
                 }
                 .pickerStyle(MenuPickerStyle())
                 .padding()
-                .onChange(of: eventTitle) { newValue in
+                .onChange(of: eventTitle) { oldValue, newValue in
                     if newValue == nil {
                         showError = false // Reset error state
                     } else if newValue == "Add Custom Event" {
