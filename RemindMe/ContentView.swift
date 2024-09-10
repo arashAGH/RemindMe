@@ -171,9 +171,61 @@ struct ContentView: View {
     @State private var defaultEvents = ["Birthday", "Anniversary", "Meeting", "Add Custom Event"]
     @State private var showError = false
 
+ 
     var body: some View {
         NavigationView {
+            
             VStack {
+                // باکس ایونت‌های امروز
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Today's Events:")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+             
+                    ZStack {
+                        // باکس اصلی
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(LinearGradient(
+                                gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.1)]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ))
+                            .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5) // More pronounced shadow
+                        
+                        VStack {
+                            if eventsForToday().isEmpty {
+                                Text("You have no events for today")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                    .padding()
+                            } else {
+                                ForEach(eventsForToday()) { event in
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("🎉 \(event.title) is celebrating today!")
+                                            .font(.headline)
+                                            .foregroundColor(.blue)
+                                            .bold()
+                                        Text("Do you want to send them your congratulations?")
+                                            .font(.subheadline)
+                                            .foregroundColor(.black)
+                                    }
+                                    .padding()
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(15)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+                        .padding()
+                        .frame(maxHeight: 200) // Adjust height as needed
+                    }
+                    .padding(.bottom)
+                }
+                .padding()
+              
+        
+    
                 Picker("Select Calendar", selection: $selectedCalendar) {
                     Text("Gregorian").tag(CalendarType.gregorian)
                     Text("Persian").tag(CalendarType.persian)
@@ -240,8 +292,11 @@ struct ContentView: View {
                     }
                 }) {
                     Text("Add Event")
+                        .foregroundColor(.red)
+
                 }
                 .padding()
+                
                 .alert(isPresented: $showError) {
                     Alert(
                         title: Text("Error"),
@@ -318,7 +373,17 @@ struct ContentView: View {
             events.remove(atOffsets: offsets)
         }
     }
-
+    func eventsForToday() -> [AppEvent] {
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        let todayEnd = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
+        
+        return events.filter { event in
+            let eventDateStart = Calendar.current.startOfDay(for: event.date)
+            let eventDateEnd = Calendar.current.date(byAdding: .day, value: 1, to: eventDateStart)!
+            return eventDateStart >= todayStart && eventDateEnd <= todayEnd
+        }
+    }
+    
     func scheduleNotification(for event: AppEvent) {
         // برنامه‌ریزی اعلان
     }
