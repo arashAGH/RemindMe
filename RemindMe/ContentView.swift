@@ -123,37 +123,34 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                // اضافه کردن تقویم اسلامی به انتخاب تقویم
                 Picker("Select Calendar", selection: $selectedCalendar) {
                     Text("Gregorian").tag(Calendar(identifier: .gregorian))
                     Text("Persian").tag(Calendar(identifier: .persian))
-                    // استفاده از تقویم Umm al-Qura برای اطمینان از پایداری
                     Text("Islamic").tag(Calendar(identifier: .islamicUmmAlQura))
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
 
-                // اطمینان از استفاده از تقویم انتخابی در DatePicker
                 DatePicker("Select Date", selection: $eventDate, displayedComponents: .date)
-                    .environment(\.calendar, selectedCalendar) // اعمال تقویم انتخاب‌شده
+                    .environment(\.calendar, selectedCalendar)
                     .padding()
 
                 Picker("Select Event", selection: $eventTitle) {
-                    Text("Select Event").tag(String?.none) // Non-selectable title
-                        .foregroundColor(.blue) // Set color to blue
+                    Text("Select Event").tag(String?.none)
+                        .foregroundColor(.blue)
                     ForEach(defaultEvents, id: \.self) { event in
                         Text(event).tag(String?(event))
-                            .foregroundColor(.black) // Set color to black for other options
+                            .foregroundColor(.black)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
                 .padding()
                 .onChange(of: eventTitle) { oldValue, newValue in
                     if newValue == nil {
-                        showError = false // Reset error state
+                        showError = false
                     } else if newValue == "Add Custom Event" {
                         isShowingCustomEventView = true
-                        eventTitle = nil // Reset the picker to avoid selecting custom event again
+                        eventTitle = nil
                     }
                 }
 
@@ -174,7 +171,10 @@ struct ContentView: View {
 
                 Button(action: {
                     if let eventTitle = eventTitle, !selectedContacts.isEmpty {
-                        let newEvent = Event(title: eventTitle, date: eventDate, contacts: selectedContacts)
+                        let eventDateComponents = selectedCalendar.dateComponents([.year, .month, .day], from: eventDate)
+                        let eventDateFromComponents = selectedCalendar.date(from: eventDateComponents) ?? Date()
+
+                        let newEvent = Event(id: UUID(), title: eventTitle, date: eventDateFromComponents, calendarIdentifier: selectedCalendar.identifier, contacts: selectedContacts)
                         events.append(newEvent)
                         saveEvent(newEvent)
                         scheduleNotification(for: newEvent)
@@ -185,21 +185,21 @@ struct ContentView: View {
                     }
                 }) {
                     Text("Add Event")
-                }
-                .padding()
+                        .foregroundColor(.red)  // رنگ متن دکمه
+                  }
+                  .padding()
                 .alert(isPresented: $showError) {
                     Alert(
                         title: Text("Error"),
-                        message: Text("Please select a valid event titles."),
+                        message: Text("Please select a valid event title."),
                         dismissButton: .default(Text("OK"))
                     )
                 }
-
                 List {
-                    ForEach(events, id: \.title) { event in
+                    ForEach(events) { event in
                         VStack(alignment: .leading) {
                             Text(event.title)
-                            Text(event.date, style: .date)
+                            Text(formattedDate(for: event.date, calendarIdentifier: event.calendarIdentifier))
                             if !event.contacts.isEmpty {
                                 Text("Contacts: \(event.contacts.joined(separator: ", "))")
                             }
@@ -245,42 +245,36 @@ struct ContentView: View {
         }
     }
 
-    func saveEvent(_ event: Event) {
-        // Implement saving event to database or UserDefaults if needed
+    func formattedDate(for date: Date, calendarIdentifier: Calendar.Identifier) -> String {
+        let calendar = Calendar(identifier: calendarIdentifier)
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
-
-    func scheduleNotification(for event: Event) {
-        let content = UNMutableNotificationContent()
-        content.title = "Reminder"
-        content.body = "\(event.title) is today!"
-        content.sound = .default
-
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day], from: event.date)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error.localizedDescription)")
-            }
-        }
+    func saveEvent(_ event: Event) {
+        // Implement saving event to database or UserDefaults
     }
 
     func loadEvents() {
-        // Dummy data for testing
-        events = [
-            Event(title: "Alice's Birthday", date: Date(), contacts: ["Alice"])
-        ]
+        // Implement loading events from database or UserDefaults
     }
 
     func deleteEvent(at offsets: IndexSet) {
         events.remove(atOffsets: offsets)
     }
+
+    func scheduleNotification(for event: Event) {
+        // Implement scheduling notifications
+    }
 }
 
-struct Event {
+struct Event: Identifiable {
+    let id: UUID
     let title: String
     let date: Date
+    let calendarIdentifier: Calendar.Identifier
     let contacts: [String]
 }
 
