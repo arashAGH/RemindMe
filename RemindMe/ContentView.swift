@@ -4,12 +4,43 @@ import ContactsUI
 import UserNotifications
 
 // مدل ایونت با تقویم
-struct Event: Identifiable {
+struct AppEvent: Identifiable {
     let id: UUID
     let title: String
     let date: Date
-    let calendarIdentifier: Calendar.Identifier
+    let calendarIdentifier: Int16
     let contacts: [String]
+}
+
+// CalendarType برای مدیریت تقویم‌ها
+enum CalendarType: Int {
+    case gregorian = 0
+    case persian = 1
+    case islamic = 2
+
+    func toCalendar() -> Calendar {
+        switch self {
+        case .gregorian:
+            return Calendar(identifier: .gregorian)
+        case .persian:
+            return Calendar(identifier: .persian)
+        case .islamic:
+            return Calendar(identifier: .islamicUmmAlQura)
+        }
+    }
+
+    static func fromCalendar(_ calendar: Calendar) -> CalendarType {
+        switch calendar.identifier {
+        case .gregorian:
+            return .gregorian
+        case .persian:
+            return .persian
+        case .islamicUmmAlQura:
+            return .islamic
+        default:
+            return .gregorian // مقدار پیش‌فرض
+        }
+    }
 }
 
 // نمایی برای انتخاب مخاطب
@@ -115,8 +146,9 @@ struct AddContactView: View {
 }
 
 // نمایش تاریخ با توجه به تقویم
-func formattedDate(for date: Date, calendarIdentifier: Calendar.Identifier) -> String {
-    let calendar = Calendar(identifier: calendarIdentifier)
+func formattedDate(for date: Date, calendarIdentifier: Int) -> String {
+    let calendarType = CalendarType(rawValue: calendarIdentifier) ?? .gregorian
+    let calendar = calendarType.toCalendar()
     let formatter = DateFormatter()
     formatter.calendar = calendar
     formatter.dateStyle = .medium
@@ -129,9 +161,9 @@ struct ContentView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var eventTitle: String? = nil
     @State private var eventDate: Date = Date()
-    @State private var selectedCalendar: Calendar = Calendar(identifier: .gregorian)
+    @State private var selectedCalendar: CalendarType = .gregorian
     @State private var selectedContacts: [String] = []
-    @State private var events: [Event] = []
+    @State private var events: [AppEvent] = []
     @State private var isShowingAddContactsView: Bool = false
     @State private var contactToAdd: String? = nil
     @State private var newCustomEventTitle: String = ""
@@ -143,15 +175,15 @@ struct ContentView: View {
         NavigationView {
             VStack {
                 Picker("Select Calendar", selection: $selectedCalendar) {
-                    Text("Gregorian").tag(Calendar(identifier: .gregorian))
-                    Text("Persian").tag(Calendar(identifier: .persian))
-                    Text("Islamic").tag(Calendar(identifier: .islamicUmmAlQura))
+                    Text("Gregorian").tag(CalendarType.gregorian)
+                    Text("Persian").tag(CalendarType.persian)
+                    Text("Islamic").tag(CalendarType.islamic)
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
 
                 DatePicker("Select Date", selection: $eventDate, displayedComponents: .date)
-                    .environment(\.calendar, selectedCalendar)
+                    .environment(\.calendar, selectedCalendar.toCalendar())
                     .padding()
 
                 Picker("Select Event", selection: $eventTitle) {
@@ -188,10 +220,16 @@ struct ContentView: View {
 
                 Button(action: {
                     if let eventTitle = eventTitle, !selectedContacts.isEmpty {
-                        let eventDateComponents = selectedCalendar.dateComponents([.year, .month, .day], from: eventDate)
-                        let eventDateFromComponents = selectedCalendar.date(from: eventDateComponents) ?? Date()
+                        let eventDateComponents = selectedCalendar.toCalendar().dateComponents([.year, .month, .day], from: eventDate)
+                        let eventDateFromComponents = selectedCalendar.toCalendar().date(from: eventDateComponents) ?? Date()
 
-                        let newEvent = Event(id: UUID(), title: eventTitle, date: eventDateFromComponents, calendarIdentifier: selectedCalendar.identifier, contacts: selectedContacts)
+                        let newEvent = AppEvent(
+                            id: UUID(),
+                            title: eventTitle, // استفاده از eventTitle به صورت غیر اختیاری
+                            date: eventDateFromComponents,
+                            calendarIdentifier: Int16(selectedCalendar.rawValue),
+                            contacts: selectedContacts
+                        )
                         events.append(newEvent)
                         saveEvent(newEvent)
                         scheduleNotification(for: newEvent)
@@ -202,9 +240,8 @@ struct ContentView: View {
                     }
                 }) {
                     Text("Add Event")
-                        .foregroundColor(.red)  // رنگ متن دکمه
-                      }
-                      .padding()
+                }
+                .padding()
                 .alert(isPresented: $showError) {
                     Alert(
                         title: Text("Error"),
@@ -217,7 +254,7 @@ struct ContentView: View {
                     ForEach(events) { event in
                         VStack(alignment: .leading) {
                             Text(event.title)
-                            Text(formattedDate(for: event.date, calendarIdentifier: event.calendarIdentifier))
+                            Text(formattedDate(for: event.date, calendarIdentifier: Int(event.calendarIdentifier)))
                             if !event.contacts.isEmpty {
                                 Text("Contacts: \(event.contacts.joined(separator: ", "))")
                             }
@@ -264,22 +301,29 @@ struct ContentView: View {
         }
     }
 
-    func saveEvent(_ event: Event) {
-        // ذخیره‌سازی ایونت
+
+    func saveEvent(_ event: AppEvent) {
+        CoreDataManager.shared.saveEvent(event: event)
+        loadEvents()  // بارگذاری مجدد رویدادها بعد از ذخیره
     }
 
     func loadEvents() {
-        // بارگذاری ایونت‌ها
+        events = CoreDataManager.shared.loadEvents()
     }
 
     func deleteEvent(at offsets: IndexSet) {
-        // حذف ایونت‌ها
+        offsets.forEach { index in
+            let eventToDelete = events[index]
+            CoreDataManager.shared.deleteEvent(event: eventToDelete)
+            events.remove(atOffsets: offsets)
+        }
     }
 
-    func scheduleNotification(for event: Event) {
+    func scheduleNotification(for event: AppEvent) {
         // برنامه‌ریزی اعلان
     }
 }
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()

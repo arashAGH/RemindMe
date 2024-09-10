@@ -14,6 +14,8 @@
 		5B08512B2C8F69BA0081980D /* RemindMeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B08512A2C8F69BA0081980D /* RemindMeUITests.swift */; };
 		5B08512D2C8F69BA0081980D /* RemindMeUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B08512C2C8F69BA0081980D /* RemindMeUITestsLaunchTests.swift */; };
 		5BEB9BBD2C8F89C300DFEEE2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEB9BBC2C8F89C300DFEEE2 /* ContentView.swift */; };
+		5BEB9BCA2C908FF800DFEEE2 /* RemindMeModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5BEB9BC82C908FF800DFEEE2 /* RemindMeModel.xcdatamodeld */; };
+		5BEB9BCC2C90920E00DFEEE2 /* coreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEB9BCB2C90920E00DFEEE2 /* coreDataManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,8 @@
 		5B08512A2C8F69BA0081980D /* RemindMeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindMeUITests.swift; sourceTree = "<group>"; };
 		5B08512C2C8F69BA0081980D /* RemindMeUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindMeUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		5BEB9BBC2C8F89C300DFEEE2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5BEB9BC92C908FF800DFEEE2 /* RemindMeModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = RemindMeModel.xcdatamodel; sourceTree = "<group>"; };
+		5BEB9BCB2C90920E00DFEEE2 /* coreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = coreDataManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				5BEB9BBC2C8F89C300DFEEE2 /* ContentView.swift */,
+				5BEB9BCB2C90920E00DFEEE2 /* coreDataManager.swift */,
+				5BEB9BC82C908FF800DFEEE2 /* RemindMeModel.xcdatamodeld */,
 				5B08510D2C8F69B90081980D /* RemindMeApp.swift */,
 				5B0851132C8F69BA0081980D /* Assets.xcassets */,
 				5B0851152C8F69BA0081980D /* Preview Content */,
@@ -258,6 +264,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B08510E2C8F69B90081980D /* RemindMeApp.swift in Sources */,
+				5BEB9BCA2C908FF800DFEEE2 /* RemindMeModel.xcdatamodeld in Sources */,
+				5BEB9BCC2C90920E00DFEEE2 /* coreDataManager.swift in Sources */,
 				5BEB9BBD2C8F89C300DFEEE2 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -582,6 +590,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		5BEB9BC82C908FF800DFEEE2 /* RemindMeModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				5BEB9BC92C908FF800DFEEE2 /* RemindMeModel.xcdatamodel */,
+			);
+			currentVersion = 5BEB9BC92C908FF800DFEEE2 /* RemindMeModel.xcdatamodel */;
+			name = RemindMeModel.xcdatamodeld;
+			path = /Users/arash/Documents/RemindMe/RemindMe/RemindMeModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 5B0851022C8F69B90081980D /* Project object */;
 }
