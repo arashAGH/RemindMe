@@ -3,6 +3,15 @@ import Contacts
 import ContactsUI
 import UserNotifications
 
+// مدل ایونت با تقویم
+struct Event: Identifiable {
+    let id: UUID
+    let title: String
+    let date: Date
+    let calendarIdentifier: Calendar.Identifier
+    let contacts: [String]
+}
+
 // نمایی برای انتخاب مخاطب
 struct ContactPickerView: UIViewControllerRepresentable {
     class Coordinator: NSObject, CNContactPickerDelegate {
@@ -40,6 +49,7 @@ struct ContactPickerView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: CNContactPickerViewController, context: Context) {}
 }
 
+// نمایی برای افزودن مخاطب
 struct AddContactView: View {
     @Environment(\.presentationMode) var presentationMode
     @Binding var selectedContacts: [String]
@@ -104,6 +114,17 @@ struct AddContactView: View {
     }
 }
 
+// نمایش تاریخ با توجه به تقویم
+func formattedDate(for date: Date, calendarIdentifier: Calendar.Identifier) -> String {
+    let calendar = Calendar(identifier: calendarIdentifier)
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .none
+    return formatter.string(from: date)
+}
+
+// نمای اصلی
 struct ContentView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var eventTitle: String? = nil
@@ -115,9 +136,7 @@ struct ContentView: View {
     @State private var contactToAdd: String? = nil
     @State private var newCustomEventTitle: String = ""
     @State private var isShowingCustomEventView: Bool = false
-
     @State private var defaultEvents = ["Birthday", "Anniversary", "Meeting", "Add Custom Event"]
-
     @State private var showError = false
 
     var body: some View {
@@ -137,10 +156,8 @@ struct ContentView: View {
 
                 Picker("Select Event", selection: $eventTitle) {
                     Text("Select Event").tag(String?.none)
-                        .foregroundColor(.blue)
                     ForEach(defaultEvents, id: \.self) { event in
                         Text(event).tag(String?(event))
-                            .foregroundColor(.black)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
@@ -186,8 +203,8 @@ struct ContentView: View {
                 }) {
                     Text("Add Event")
                         .foregroundColor(.red)  // رنگ متن دکمه
-                  }
-                  .padding()
+                      }
+                      .padding()
                 .alert(isPresented: $showError) {
                     Alert(
                         title: Text("Error"),
@@ -195,6 +212,7 @@ struct ContentView: View {
                         dismissButton: .default(Text("OK"))
                     )
                 }
+
                 List {
                     ForEach(events) { event in
                         VStack(alignment: .leading) {
@@ -219,18 +237,18 @@ struct ContentView: View {
             }
             .sheet(isPresented: $isShowingCustomEventView) {
                 VStack {
-                    TextField("Enter custom event", text: $newCustomEventTitle)
+                    TextField("Custom Event Title", text: $newCustomEventTitle)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
                     
                     Button(action: {
                         if !newCustomEventTitle.isEmpty, !defaultEvents.contains(newCustomEventTitle) {
                             defaultEvents.append(newCustomEventTitle)
-                            newCustomEventTitle = ""
                             isShowingCustomEventView = false
+                            newCustomEventTitle = ""
                         }
                     }) {
-                        Text("Save Custom Event")
+                        Text("Add Event")
                     }
                     .padding()
                     
@@ -241,43 +259,27 @@ struct ContentView: View {
                     }
                     .padding()
                 }
+                .padding()
             }
         }
     }
 
-    func formattedDate(for date: Date, calendarIdentifier: Calendar.Identifier) -> String {
-        let calendar = Calendar(identifier: calendarIdentifier)
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
     func saveEvent(_ event: Event) {
-        // Implement saving event to database or UserDefaults
+        // ذخیره‌سازی ایونت
     }
 
     func loadEvents() {
-        // Implement loading events from database or UserDefaults
+        // بارگذاری ایونت‌ها
     }
 
     func deleteEvent(at offsets: IndexSet) {
-        events.remove(atOffsets: offsets)
+        // حذف ایونت‌ها
     }
 
     func scheduleNotification(for event: Event) {
-        // Implement scheduling notifications
+        // برنامه‌ریزی اعلان
     }
 }
-
-struct Event: Identifiable {
-    let id: UUID
-    let title: String
-    let date: Date
-    let calendarIdentifier: Calendar.Identifier
-    let contacts: [String]
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
