@@ -173,188 +173,191 @@ struct ContentView: View {
 
  
     var body: some View {
+        
         NavigationView {
             
-            VStack {
-                // باکس ایونت‌های امروز
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Today's Events:")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-             
-                    ZStack {
-                        // باکس اصلی
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.1)]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ))
-                            .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5) // More pronounced shadow
+                
+                VStack {
+                    // باکس ایونت‌های امروز
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Today's Events:")
+                            .font(.body)
+                            .multilineTextAlignment(.center)
                         
-                        VStack {
-                            if eventsForToday().isEmpty {
-                                Text("You have no events for today")
-                                    .font(.headline)
-                                    .foregroundColor(.gray)
-                                    .padding()
-                            } else {
-                                ForEach(eventsForToday()) { event in
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("🎉 \(event.title) is celebrating today!")
-                                            .font(.headline)
-                                            .foregroundColor(.blue)
-                                            .bold()
-                                        Text("Do you want to send them your congratulations?")
-                                            .font(.subheadline)
-                                            .foregroundColor(.black)
+                        ZStack {
+                            // باکس اصلی
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.1)]),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ))
+                                .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5) // More pronounced shadow
+                            
+                            VStack {
+                                if eventsForToday().isEmpty {
+                                    Text("You have no events for today")
+                                        .font(.headline)
+                                        .foregroundColor(.gray)
+                                        .padding()
+                                } else {
+                                    ForEach(eventsForToday()) { event in
+                                        VStack(alignment: .leading, spacing: 9) {
+                                            Text( "\(event.contacts) is \(event.title) today!")
+                                                .font(.headline)
+                                                .foregroundColor(.black)
+                                                .bold()
+                                         
+                                        }
+                                        .padding()
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(15)
+                                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                       
                                     }
-                                    .padding()
-                                    .background(Color.blue.opacity(0.1))
-                                    .cornerRadius(15)
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                    .padding(.horizontal)
                                 }
                             }
+                       
                         }
-                        .padding()
-                        .frame(maxHeight: 200) // Adjust height as needed
+                        
                     }
-                    .padding(.bottom)
-                }
-                .padding()
-              
-        
-    
-                Picker("Select Calendar", selection: $selectedCalendar) {
-                    Text("Gregorian").tag(CalendarType.gregorian)
-                    Text("Persian").tag(CalendarType.persian)
-                    Text("Islamic").tag(CalendarType.islamic)
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
-
-                DatePicker("Select Date", selection: $eventDate, displayedComponents: .date)
-                    .environment(\.calendar, selectedCalendar.toCalendar())
                     .padding()
-
-                Picker("Select Event", selection: $eventTitle) {
-                    Text("Select Event").tag(String?.none)
-                    ForEach(defaultEvents, id: \.self) { event in
-                        Text(event).tag(String?(event))
+                    
+                    
+                    
+                    Picker("Select Calendar", selection: $selectedCalendar) {
+                        Text("Gregorian").tag(CalendarType.gregorian)
+                        Text("Persian").tag(CalendarType.persian)
+                        Text("Islamic").tag(CalendarType.islamic)
                     }
-                }
-                .pickerStyle(MenuPickerStyle())
-                .padding()
-                .onChange(of: eventTitle) { oldValue, newValue in
-                    if newValue == nil {
-                        showError = false
-                    } else if newValue == "Add Custom Event" {
-                        isShowingCustomEventView = true
-                        eventTitle = nil
-                    }
-                }
-
-                Button(action: {
-                    if eventTitle == nil {
-                        showError = true
-                    } else {
-                        self.isShowingAddContactsView = true
-                    }
-                }) {
-                    Text("Add Contacts")
-                }
-                .padding()
-
-                if !selectedContacts.isEmpty {
-                    Text("Selected Contacts: \(selectedContacts.joined(separator: ", "))")
-                }
-
-                Button(action: {
-                    if let eventTitle = eventTitle, !selectedContacts.isEmpty {
-                        let eventDateComponents = selectedCalendar.toCalendar().dateComponents([.year, .month, .day], from: eventDate)
-                        let eventDateFromComponents = selectedCalendar.toCalendar().date(from: eventDateComponents) ?? Date()
-
-                        let newEvent = AppEvent(
-                            id: UUID(),
-                            title: eventTitle, // استفاده از eventTitle به صورت غیر اختیاری
-                            date: eventDateFromComponents,
-                            calendarIdentifier: Int16(selectedCalendar.rawValue),
-                            contacts: selectedContacts
-                        )
-                        events.append(newEvent)
-                        saveEvent(newEvent)
-                        scheduleNotification(for: newEvent)
-                        self.eventTitle = nil
-                        selectedContacts = []
-                    } else {
-                        showError = true
-                    }
-                }) {
-                    Text("Add Event")
-                        .foregroundColor(.red)
-
-                }
-                .padding()
-                
-                .alert(isPresented: $showError) {
-                    Alert(
-                        title: Text("Error"),
-                        message: Text("Please select a valid event title."),
-                        dismissButton: .default(Text("OK"))
-                    )
-                }
-
-                List {
-                    ForEach(events) { event in
-                        VStack(alignment: .leading) {
-                            Text(event.title)
-                            Text(formattedDate(for: event.date, calendarIdentifier: Int(event.calendarIdentifier)))
-                            if !event.contacts.isEmpty {
-                                Text("Contacts: \(event.contacts.joined(separator: ", "))")
-                            }
-                        }
-                    }
-                    .onDelete(perform: deleteEvent)
-                }
-                .listStyle(PlainListStyle())
-                .navigationBarItems(trailing: EditButton())
-            }
-            .navigationTitle("RemindMe")
-            .onAppear {
-                loadEvents()
-            }
-            .sheet(isPresented: $isShowingAddContactsView) {
-                AddContactView(selectedContacts: $selectedContacts, contactToAdd: $contactToAdd)
-            }
-            .sheet(isPresented: $isShowingCustomEventView) {
-                VStack {
-                    TextField("Custom Event Title", text: $newCustomEventTitle)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding()
+                    
+                    DatePicker("Select Date", selection: $eventDate, displayedComponents: .date)
+                        .environment(\.calendar, selectedCalendar.toCalendar())
                         .padding()
                     
+                    Picker("Select Event", selection: $eventTitle) {
+                        Text("Select Event").tag(String?.none)
+                        ForEach(defaultEvents, id: \.self) { event in
+                            Text(event).tag(String?(event))
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding()
+                    .onChange(of: eventTitle) { oldValue, newValue in
+                        if newValue == nil {
+                            showError = false
+                        } else if newValue == "Add Custom Event" {
+                            isShowingCustomEventView = true
+                            eventTitle = nil
+                        }
+                    }
+                    
                     Button(action: {
-                        if !newCustomEventTitle.isEmpty, !defaultEvents.contains(newCustomEventTitle) {
-                            defaultEvents.append(newCustomEventTitle)
-                            isShowingCustomEventView = false
-                            newCustomEventTitle = ""
+                        if eventTitle == nil {
+                            showError = true
+                        } else {
+                            self.isShowingAddContactsView = true
+                        }
+                    }) {
+                        Text("Add Contacts")
+                    }
+                    .padding()
+                    
+                    if !selectedContacts.isEmpty {
+                        Text("Selected Contacts: \(selectedContacts.joined(separator: ", "))")
+                    }
+                    
+                    Button(action: {
+                        if let eventTitle = eventTitle, !selectedContacts.isEmpty {
+                            let eventDateComponents = selectedCalendar.toCalendar().dateComponents([.year, .month, .day], from: eventDate)
+                            let eventDateFromComponents = selectedCalendar.toCalendar().date(from: eventDateComponents) ?? Date()
+                            
+                            let newEvent = AppEvent(
+                                id: UUID(),
+                                title: eventTitle, // استفاده از eventTitle به صورت غیر اختیاری
+                                date: eventDateFromComponents,
+                                calendarIdentifier: Int16(selectedCalendar.rawValue),
+                                contacts: selectedContacts
+                            )
+                            events.append(newEvent)
+                            saveEvent(newEvent)
+                            scheduleNotification(for: newEvent)
+                            self.eventTitle = nil
+                            selectedContacts = []
+                        } else {
+                            showError = true
                         }
                     }) {
                         Text("Add Event")
+                            .foregroundColor(.red)
+                        
                     }
                     .padding()
                     
-                    Button(action: {
-                        isShowingCustomEventView = false
-                    }) {
-                        Text("Cancel")
+                    .alert(isPresented: $showError) {
+                        Alert(
+                            title: Text("Error"),
+                            message: Text("Please select a valid event title."),
+                            dismissButton: .default(Text("OK"))
+                        )
+                    }
+                    
+                    List {
+                        ForEach(events) { event in
+                            VStack(alignment: .leading) {
+                                Text(event.title)
+                                Text(formattedDate(for: event.date, calendarIdentifier: Int(event.calendarIdentifier)))
+                                if !event.contacts.isEmpty {
+                                    Text("Contacts: \(event.contacts.joined(separator: ", "))")
+                                }
+                            }
+                        }
+                        .onDelete(perform: deleteEvent)
+                    }
+                    .listStyle(PlainListStyle())
+                    .navigationBarItems(trailing: EditButton())
+                }
+                .navigationBarItems(
+                    leading: Text("RemindMe")
+                        .font(.custom("Futura-Bold", size: 19)) // استفاده از فونت سفارشی
+                        .fontWeight(.bold)
+                )
+                .onAppear {
+                    loadEvents()
+                }
+                .sheet(isPresented: $isShowingAddContactsView) {
+                    AddContactView(selectedContacts: $selectedContacts, contactToAdd: $contactToAdd)
+                }
+                .sheet(isPresented: $isShowingCustomEventView) {
+                    VStack {
+                        TextField("Custom Event Title", text: $newCustomEventTitle)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                        
+                        Button(action: {
+                            if !newCustomEventTitle.isEmpty, !defaultEvents.contains(newCustomEventTitle) {
+                                defaultEvents.append(newCustomEventTitle)
+                                isShowingCustomEventView = false
+                                newCustomEventTitle = ""
+                            }
+                        }) {
+                            Text("Add Event")
+                        }
+                        .padding()
+                        
+                        Button(action: {
+                            isShowingCustomEventView = false
+                        }) {
+                            Text("Cancel")
+                        }
+                        .padding()
                     }
                     .padding()
                 }
-                .padding()
             }
         }
-    }
 
 
     func saveEvent(_ event: AppEvent) {
@@ -394,3 +397,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
